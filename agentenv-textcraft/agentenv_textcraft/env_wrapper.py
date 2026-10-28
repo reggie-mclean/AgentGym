@@ -1,9 +1,23 @@
+import os
+
 from .environment import TextCraftEnv
 from .crafting_tree import CraftingTree
 import threading
 
+# Patched from upstream: the original default ("agentenv_textcraft/") is a
+# relative path that only resolves if the process's CWD happens to be this
+# package's own parent directory -- it isn't when imported from this repo's
+# reward_hacking.envs.textcraft, which builds its own CraftingTree directly
+# instead of using this module-level singleton anyway (see that module's
+# docstring), but `import agentenv_textcraft` still runs this file's
+# module-level `server = TextCraft_Wrapper()` regardless (Python always
+# executes a package's __init__ chain, even for a submodule-only import), so
+# it has to resolve correctly from any CWD.
+_DEFAULT_MINECRAFT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 class TextCraft_Wrapper:
-    def __init__(self, minecraft_dir="agentenv_textcraft/"):
+    def __init__(self, minecraft_dir=_DEFAULT_MINECRAFT_DIR):
         self._max_id = 0
         self.env = {}  # dict[id, env_item]
         self.info = {}  # dict[id, env_info]
